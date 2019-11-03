@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 
 
 
-class BookSearchEngine extends React.Component
+class BookLibrary extends React.Component
 {
     constructor(props)
     {
@@ -11,40 +11,55 @@ class BookSearchEngine extends React.Component
         this.state={
             query:"",
             books: [],
-            status : "Searching For "
+            
         }
-        this.inputChanged=this.inputChanged.bind(this);
+       
+        this.updateBooks=this.updateBooks.bind(this);
        
     }
   
 componentDidMount()
 {
     
-    let req=new XMLHttpRequest();
-    req.open("GET","books.json");
-    req.send();
-    req.onreadystatechange=()=>{
-      if(req.readyState==4&& req.status==200)
-      {
-          var data = JSON.parse(req.responseText);
-         
-        for(let i =0 ;i<data.length;i++)
-        {
-          
-            if(data[i].language=="English")
-            {
-                this.setState({        
-                    books:this.state.books.push(data[i])
-                })
-            }
-        }
-        this.state.books.forEach((book)=>{
-            lang.push(<option>{book.language}</option>)
-        })
-      }  
-    }
+   
         
 }
+
+updateBooks(Books)
+{
+    this.setState({
+        books: Books,
+    })
+}
+    
+    render()
+    {
+       
+        return (
+        <div className="container-fluid">
+           <div className="row">
+                <div className="col-md-4 offset-md-4">
+                <h1>BOOK SEARCH</h1>
+                <hr/>
+           <LanguageSelect updateBooks={this.updateBooks}/>         
+           </div>
+           <BookSearchResult/>
+           </div>
+        </div>
+        );
+    }
+}
+
+class LanguageSelect extends React.Component
+{
+    constructor(props)
+    {
+        super(props);
+        this.state={
+            books:[]
+        }
+        this.inputChanged=this.inputChanged.bind(this);
+    }
 
     inputChanged(event)
     {
@@ -52,37 +67,47 @@ componentDidMount()
         
        
     }
+componentDidMount()
+{
+    let req=new XMLHttpRequest();
+    req.open("GET","books.json");
+    req.send();
+    req.onreadystatechange=()=>{
+      if(req.readyState==4&& req.status==200)
+      {
+          var data = JSON.parse(req.responseText);
+          
+       console.log(data);
+      } 
+    }
+}
     render()
     {
        
         return (
-        <div className="container-fluid">
+       
            
-            <div className="row">
-                <div className="col-md-4 offset-md-4">
-                <h1>BOOK SEARCH</h1>
-                <hr/>
+            <div>
                 <h5>Enter Language of book</h5>
                 <hr/>
                 <label>
                     <select onChange={this.inputChanged} className="form-control">
-                       {lang}
+                      <option>Selected Your Language</option>
                         </select>
                </label>
                <br/>
         <button  className="btn btn-info">Search</button>
                        
                        <hr/>
-                       <h5>{this.state.status +this.state.query}</h5>
+                    
                       
-                    </div>
-                
-                </div>
-                <BookSearchResult  Books={this.state.books}/>
-        </div>
+              </div>      
+       
         );
     }
+
 }
+
 
 class BookSearchResult extends React.Component
 {
@@ -96,8 +121,7 @@ class BookSearchResult extends React.Component
     {
        
         //console.log(this.props.Books);
-        return (
-   <div className="table-responsive">
+       return(<div className="table-responsive">
        <table className="table">
            <thead>
              <tr>
@@ -108,9 +132,9 @@ class BookSearchResult extends React.Component
             </tr>
          </thead>
            </table>
-       </div>
-        );
+       </div>);
+        
         }
-    }
+}
 
-ReactDOM.render(<BookSearchEngine/>,document.getElementById('root'));
+ReactDOM.render(<BookLibrary/>,document.getElementById('root'));
