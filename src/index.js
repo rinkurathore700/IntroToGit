@@ -5,136 +5,137 @@ import ReactDOM from 'react-dom';
 
 class BookLibrary extends React.Component
 {
-    constructor(props)
-    {
-        super(props);
-        this.state={
-            query:"",
-            books: [],
-            
-        }
-       
-        this.updateBooks=this.updateBooks.bind(this);
-       
-    }
-  
-componentDidMount()
-{
-    
-   
-        
-}
+    constructor(props) {
+		super(props);
+		this.state = {
+			selectedLanguage: "",
+			books: []
+		}
 
-updateBooks(Books)
-{
-    this.setState({
-        books: Books,
-    })
-}
-    
-    render()
-    {
-       
-        return (
-        <div className="container-fluid">
-           <div className="row">
-                <div className="col-md-4 offset-md-4">
-                <h1>BOOK SEARCH</h1>
-                <hr/>
-           <LanguageSelect updateBooks={this.updateBooks}/>         
-           </div>
-           <BookSearchResult/>
-           </div>
-        </div>
-        );
-    }
+		this.updateBooks = this.updateBooks.bind(this);
+		this.updateSelectedLanguage = this.updateSelectedLanguage.bind(this);
+	}
+
+
+	updateBooks(books) {
+		this.setState({books: books});
+	}                     
+
+
+	updateSelectedLanguage(newLanguage) {
+		this.setState({selectedLanguage: newLanguage});
+	}
+
+
+	render() {
+		return (
+			<div className="container-fluid">
+
+				<div className="row">
+
+					<div className="col-md-5 offset-md-2">
+
+						<h2>My Library</h2>
+						<hr />
+
+						<LanguageSelect books={this.state.books} updateBooks={this.updateBooks} updateSelectedLanguage={this.updateSelectedLanguage} />
+
+						<BookSearchResult books={this.state.books} selectedLanguage={this.state.selectedLanguage} />
+
+					</div>
+
+				</div>
+
+			</div>
+		);
+	}
 }
 
 class LanguageSelect extends React.Component
 {
-    constructor(props)
-    {
-        super(props);
-        this.state={
-            books:[]
-        }
-        this.inputChanged=this.inputChanged.bind(this);
-    }
+    constructor(props) {
+		super(props);
 
-    inputChanged(event)
-    {
-         
-        
-       
-    }
-componentDidMount()
-{
-    let req=new XMLHttpRequest();
-    req.open("GET","books.json");
-    req.send();
-    req.onreadystatechange=()=>{
-      if(req.readyState==4&& req.status==200)
-      {
-          var data = JSON.parse(req.responseText);
-          
-       console.log(data);
-      } 
-    }
-}
-    render()
-    {
-       
-        return (
-       
-           
-            <div>
-                <h5>Enter Language of book</h5>
-                <hr/>
-                <label>
-                    <select onChange={this.inputChanged} className="form-control">
-                      <option>Selected Your Language</option>
-                        </select>
-               </label>
-               <br/>
-        <button  className="btn btn-info">Search</button>
-                       
-                       <hr/>
-                    
-                      
-              </div>      
-       
-        );
-    }
+		this.selectChanged = this.selectChanged.bind(this);
+	}
+
+	componentDidMount() {
+		let self = this;
+
+		let request = new XMLHttpRequest();
+		request.open("get", "books.json");
+		request.send();
+		request.onreadystatechange = function() {
+			if(request.readyState == 4 && request.status == 200) {
+				let data = JSON.parse(request.responseText);
+				self.props.updateBooks(data);
+			}
+		}
+	}
+
+	populateOptions() {
+		let books = new Set( this.props.books.map( b => b.language ) );
+		let optionElements = [
+			<option key={"select"} value="select">Select a Language</option>
+		];
+		books.forEach( b => optionElements.push( <option key={b} value={b}>{b}</option> ) );
+		return optionElements;
+	}
+
+	selectChanged(event) {
+		this.props.updateSelectedLanguage(event.target.value);
+	}
+
+	render() {
+
+		return (
+			<select onChange={this.selectChanged} className="form-control">
+				{this.populateOptions()}
+			</select>
+		)
+	}
 
 }
 
 
 class BookSearchResult extends React.Component
 {
-    constructor(props)
-    {
-        super(props);
-        
-    }
-   
-    render()
-    {
-       
-        //console.log(this.props.Books);
-       return(<div className="table-responsive">
-       <table className="table">
-           <thead>
-             <tr>
-               <th scope="col">S.No</th>
-               <th scope="col">Title</th>
-               <th scope="col">Country</th>
-               <th scope="col">Language</th>
-            </tr>
-         </thead>
-           </table>
-       </div>);
-        
-        }
+    populateTableData() {
+		let selectedLanguage = this.props.selectedLanguage;
+		let books = this.props.books;
+		let availableBooks = books.filter(b => b.language == selectedLanguage);
+
+		let tableData = availableBooks.map( b => {
+			return (
+				<tr key={b.title}>
+					<td>{b.title}</td>
+					<td>{b.country}</td>
+					<td>{b.language}</td>
+				</tr>
+			);
+		});
+		return tableData;
+	}
+
+
+	render() {
+		return (
+			<table className="table table-striped">
+				<thead>
+					<tr>
+						<th>Title</th>
+						<th>Country</th>
+						<th>Language</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					{this.populateTableData()}
+				</tbody>
+
+			</table>
+		)
+	}
 }
 
 ReactDOM.render(<BookLibrary/>,document.getElementById('root'));
